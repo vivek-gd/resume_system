@@ -674,4 +674,5 @@ def run_schedule():
 if __name__ == '__main__':
     # 启动定时任务线程
     threading.Thread(target=run_schedule, daemon=True).start()
+    app.run(debug=False, host='0.0.0.0', port=5000)
     app.run(debug=False, host='0.0.0.0')  # 部署时关闭debug
