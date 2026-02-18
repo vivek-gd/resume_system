@@ -7,7 +7,7 @@ echo.
 
 :: Activate virtual environment
 if exist "venv\Scripts\activate.bat" (
-    call venv\Scripts\activate.bat
+    call "venv\Scripts\activate.bat"
     echo [OK] Virtual environment activated
 ) else (
     echo [ERROR] Virtual environment not found

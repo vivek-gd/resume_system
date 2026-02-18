@@ -25,8 +25,15 @@
         .skill-tag:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(102,126,234,0.2); }
         .intro-box { background: linear-gradient(135deg, #f8f9ff 0%, #f5f0ff 100%); padding: 1.5rem; border-radius: 10px; border-left: 4px solid var(--primary-color); margin-bottom: 2rem; }
         .update-time { text-align: right; color: #999; font-size: 0.85rem; margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #eee; }
-        .export-btn { position: fixed; top: 20px; right: 20px; z-index: 999; background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%); color: white; border: none; padding: 0.8rem 1.5rem; border-radius: 30px; box-shadow: 0 4px 15px rgba(102,126,234,0.4); transition: all 0.3s; }
+        .top-buttons { position: fixed; top: 20px; right: 20px; z-index: 999; display: flex; gap: 10px; }
+        .export-btn { background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%); color: white; border: none; padding: 0.8rem 1.5rem; border-radius: 30px; box-shadow: 0 4px 15px rgba(102,126,234,0.4); transition: all 0.3s; }
         .export-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(102,126,234,0.5); }
+        .edit-btn { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white; border: none; padding: 0.8rem 1.5rem; border-radius: 30px; box-shadow: 0 4px 15px rgba(17,153,142,0.4); transition: all 0.3s; }
+        .edit-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(17,153,142,0.5); }
+        .login-btn { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 0.8rem 1.5rem; border-radius: 30px; box-shadow: 0 4px 15px rgba(102,126,234,0.4); transition: all 0.3s; }
+        .login-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(102,126,234,0.5); }
+        .register-btn { background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%); color: white; border: none; padding: 0.8rem 1.5rem; border-radius: 30px; box-shadow: 0 4px 15px rgba(255,107,107,0.4); transition: all 0.3s; }
+        .register-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255,107,107,0.5); }
         @media (max-width: 768px) {
             .resume-container { margin: 20px 10px; }
             .resume-header { padding: 2rem 1rem; }
@@ -38,9 +45,23 @@
     </style>
 </head>
 <body>
-    <a href="{{ url_for('export_current_pdf') }}" class="btn export-btn">
-        <i class="fa fa-download me-2"></i>导出PDF
-    </a>
+    <div class="top-buttons">
+        {% if is_owner %}
+            <a href="{{ url_for('edit') }}" class="btn edit-btn">
+                <i class="fa fa-pencil me-2"></i>编辑简历
+            </a>
+        {% else %}
+            <a href="{{ url_for('login') }}" class="btn login-btn">
+                <i class="fa fa-sign-in me-2"></i>登录
+            </a>
+            <a href="{{ url_for('register') }}" class="btn register-btn">
+                <i class="fa fa-user-plus me-2"></i>注册
+            </a>
+        {% endif %}
+        <a href="{{ url_for('export_current_pdf') }}" class="btn export-btn">
+            <i class="fa fa-download me-2"></i>导出PDF
+        </a>
+    </div>
 
     <div class="resume-container">
         <div class="resume-header">

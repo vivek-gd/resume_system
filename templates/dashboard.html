@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户仪表板 - 简历管理系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css">
+    <style>
+        body { 
+            background-color: #f8f9fa; 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+        .dashboard-container { 
+            max-width: 1200px; 
+            margin: 40px auto; 
+            padding: 0 15px;
+        }
+        .dashboard-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 20px rgba(102,126,234,0.3);
+        }
+        .dashboard-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: transform 0.3s;
+        }
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #5a6edb 0%, #6a4298 100%);
+        }
+        .btn-success {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            border: none;
+        }
+        .btn-success:hover {
+            background: linear-gradient(135deg, #0e8a80 0%, #32d672 100%);
+        }
+        .btn-info {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            border: none;
+        }
+        .btn-info:hover {
+            background: linear-gradient(135deg, #3f9be5 0%, #00e0ee 100%);
+        }
+        .btn-warning {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            border: none;
+        }
+        .btn-warning:hover {
+            background: linear-gradient(135deg, #e083ea 0%, #e44d61 100%);
+        }
+        .resume-thumbnail {
+            height: 150px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+        .resume-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        .resume-meta {
+            color: #6c757d;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <div class="dashboard-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="mb-2">欢迎, {{ user.username }}!</h1>
+                    <p class="mb-0">管理您的个人简历和版本历史</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('index') }}" class="btn btn-light">
+                        <i class="fa fa-eye me-1"></i>查看简历
+                    </a>
+                    <a href="{{ url_for('logout') }}" class="btn btn-outline-light">
+                        <i class="fa fa-sign-out me-1"></i>退出登录
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <div class="dashboard-card">
+                    <div class="resume-thumbnail">
+                        <i class="fa fa-file-text-o"></i>
+                    </div>
+                    <h3 class="resume-title">我的简历</h3>
+                    <div class="resume-meta">
+                        {% if resumes %}
+                            共 {{ resumes|length }} 份简历
+                        {% else %}
+                            暂无简历
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">个人简历链接</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" value="{{ url_for('profile', unique_id=user.unique_id, _external=True) }}" readonly>
+                            <button class="btn btn-outline-secondary" onclick="copyLink(this)">复制</button>
+                        </div>
+                        <small class="text-muted">分享此链接给他人查看您的简历</small>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('edit') }}" class="btn btn-success">
+                            <i class="fa fa-pencil me-1"></i>编辑简历
+                        </a>
+                        <a href="{{ url_for('history') }}" class="btn btn-info">
+                            <i class="fa fa-history me-1"></i>版本历史
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            {% if resumes %}
+                {% for resume in resumes %}
+                <div class="col-md-4 mb-4">
+                    <div class="dashboard-card">
+                        <div class="resume-thumbnail">
+                            <i class="fa fa-user-circle-o"></i>
+                        </div>
+                        <h3 class="resume-title">{{ resume.name }}</h3>
+                        <div class="resume-meta">
+                            <p><strong>求职意向:</strong> {{ resume.job }}</p>
+                            <p><strong>最后更新:</strong> {{ resume.update_time.strftime("%Y-%m-%d %H:%M") }}</p>
+                            <p><strong>状态:</strong> 
+                                {% if resume.is_public %}
+                                    <span class="badge bg-success">公开</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">私密</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="d-grid gap-2">
+                            <a href="{{ url_for('index') }}" class="btn btn-primary">
+                                <i class="fa fa-eye me-1"></i>查看简历
+                            </a>
+                            <a href="{{ url_for('edit') }}" class="btn btn-success">
+                                <i class="fa fa-pencil me-1"></i>编辑简历
+                            </a>
+                            <a href="{{ url_for('export_current_pdf') }}" class="btn btn-warning">
+                                <i class="fa fa-download me-1"></i>导出PDF
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function copyLink(button) {
+            const input = button.previousElementSibling;
+            input.select();
+            document.execCommand('copy');
+            button.textContent = '已复制';
+            setTimeout(() => {
+                button.textContent = '复制';
+            }, 2000);
+        }
+    </script>
+</body>
+</html>

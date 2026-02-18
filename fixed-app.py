@@ -1,4 +1,4 @@
-# 最终版app.py文件
+# 修复版app.py文件
 
 import os
 import datetime
@@ -6,19 +6,9 @@ import re
 import PyPDF2
 import uuid
 from docx import Document
-import pdfkit  # 先导入pdfkit模块，然后再导入Flask类
-
-print('开始初始化应用...')
-
-# 延迟导入Flask和其他模块
-try:
-    from flask import Flask
-    print('✓ Flask 导入成功')
-except Exception as e:
-    print('✗ Flask 导入失败:', str(e))
-    import traceback
-    traceback.print_exc()
-    exit(1)
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+import pdfkit  # 新增：PDF导出依赖
 
 # 初始化Flask应用
 app = Flask(__name__)
@@ -46,21 +36,8 @@ if os.name == 'nt':  # Windows系统
 else:  # Linux/Mac系统
     app.config['WKHTMLTOPDF_PATH'] = 'wkhtmltopdf'
 
-print('✓ Flask应用初始化成功')
-
-# 延迟导入SQLAlchemy
-try:
-    from flask_sqlalchemy import SQLAlchemy
-    print('✓ SQLAlchemy 导入成功')
-except Exception as e:
-    print('✗ SQLAlchemy 导入失败:', str(e))
-    import traceback
-    traceback.print_exc()
-    exit(1)
-
 # 初始化扩展
 db = SQLAlchemy(app)
-print('✓ SQLAlchemy初始化成功')
 
 # 允许的文件类型
 ALLOWED_IMAGE_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
@@ -73,7 +50,6 @@ def allowed_file(filename, allowed_extensions):
 if app.config['WKHTMLTOPDF_PATH']:
     try:
         pdf_config = pdfkit.configuration(wkhtmltopdf=app.config['WKHTMLTOPDF_PATH'])
-        print('✓ PDF配置初始化成功')
     except:
         pdf_config = None
         print('[WARNING] wkhtmltopdf configuration failed. PDF export will be disabled.')
@@ -129,28 +105,12 @@ class ResumeHistory(db.Model):
     # 新增：版本备注字段
     remark = db.Column(db.String(200))  # 版本备注
 
-print('✓ 数据库模型定义成功')
-
 # ---------------------- 简历解析函数 ----------------------
 # 导入优化后的解析函数
-try:
-    from parse_resume_optimized import parse_resume_optimized as parse_resume
-    print('✓ parse_resume函数导入成功')
-except Exception as e:
-    print('✗ parse_resume函数导入失败:', str(e))
-    import traceback
-    traceback.print_exc()
-    exit(1)
+from parse_resume_optimized import parse_resume_optimized as parse_resume
 
 # ---------------------- 密码哈希处理函数 ----------------------
-try:
-    from werkzeug.security import generate_password_hash, check_password_hash
-    print('✓ werkzeug.security 导入成功')
-except Exception as e:
-    print('✗ werkzeug.security 导入失败:', str(e))
-    import traceback
-    traceback.print_exc()
-    exit(1)
+from werkzeug.security import generate_password_hash, check_password_hash
 
 def hash_password(password):
     """生成密码哈希值"""
@@ -928,17 +888,9 @@ def init_db():
         os.makedirs('static/documents', exist_ok=True)
 
 # 新增：定时清理旧版本记录（集成到启动逻辑）
-try:
-    import schedule
-    import time
-    import threading
-    print('✓ schedule模块导入成功')
-except Exception as e:
-    print('✗ schedule模块导入失败:', str(e))
-    import traceback
-    traceback.print_exc()
-    exit(1)
-
+import schedule
+import time
+import threading
 def clean_old_histories():
     with app.app_context():
         # 删除3个月前的记录

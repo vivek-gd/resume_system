@@ -6,7 +6,7 @@ import re
 import PyPDF2
 import uuid
 from docx import Document
-import pdfkit  # 先导入pdfkit模块，然后再导入Flask类
+import pdfkit  # 新增：PDF导出依赖
 
 print('开始初始化应用...')
 
