@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能简历管理系统 - 首页</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css">
+    <style>
+        :root {
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --accent-color: #f093fb;
+            --success-color: #4CAF50;
+            --light-bg: #f8f9fa;
+            --dark-text: #333333;
+            --light-text: #666666;
+        }
+        
+        body {
+            font-family: 'Microsoft YaHei', 'Helvetica Neue', sans-serif;
+            color: var(--dark-text);
+            overflow-x: hidden;
+        }
+        
+        /* Hero Section */
+        .hero-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMtMS4yNiAwLTIuMzEuNDQtMy4xMiAxLjE5cy0xLjE5IDEuODYtMS4xOSAzLjEycy40NCAyLjMxIDEuMTkgMy4xMnMyLjMxLjQ0IDMuMTItMS4xOXMuMTktMS44Ni0xLjEyLTMuMTJ6IiBzdHJva2U9IiNmZmZmZmYyMCIgc3Ryb2tlLXdpZHRoPSIyIi8+PC9nPjwvc3ZnPg==');
+            opacity: 0.1;
+        }
+        
+        .hero-content {
+            position: relative;
+            z-index: 2;
+        }
+        
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 1.5rem;
+            line-height: 1.2;
+        }
+        
+        .hero-subtitle {
+            font-size: 1.25rem;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 2.5rem;
+            max-width: 600px;
+        }
+        
+        .btn-primary {
+            background: rgba(255, 255, 255, 0.95);
+            color: var(--primary-color);
+            border: none;
+            padding: 1rem 2.5rem;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 32px rgba(255, 255, 255, 0.2);
+        }
+        
+        .btn-primary:hover {
+            background: white;
+            transform: translateY(-3px);
+            box-shadow: 0 12px 40px rgba(255, 255, 255, 0.3);
+        }
+        
+        .btn-secondary {
+            background: transparent;
+            color: rgba(255, 255, 255, 0.9);
+            border: 2px solid rgba(255, 255, 255, 0.9);
+            padding: 1rem 2.5rem;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-secondary:hover {
+            background: white;
+            color: var(--primary-color);
+            transform: translateY(-3px);
+        }
+        
+        .hero-image {
+            position: relative;
+            z-index: 2;
+        }
+        
+        .hero-image img {
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+            100% { transform: translateY(0px); }
+        }
+        
+        /* Features Section */
+        .features-section {
+            padding: 8rem 0;
+            background: var(--light-bg);
+        }
+        
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 1rem;
+            color: var(--dark-text);
+        }
+        
+        .section-subtitle {
+            font-size: 1.1rem;
+            text-align: center;
+            color: var(--light-text);
+            margin-bottom: 4rem;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .feature-card {
+            background: white;
+            border-radius: 20px;
+            padding: 2.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(102, 126, 234, 0.1);
+            height: 320px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 60px rgba(102, 126, 234, 0.15);
+        }
+        
+        .feature-card .feature-description {
+            flex-grow: 1;
+            overflow-y: auto;
+            margin-top: 1rem;
+            padding-right: 0.5rem;
+        }
+        
+        /* 滚动条样式 */
+        .feature-card .feature-description::-webkit-scrollbar {
+            width: 4px;
+        }
+        
+        .feature-card .feature-description::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 2px;
+        }
+        
+        .feature-card .feature-description::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 2px;
+        }
+        
+        .feature-card .feature-description::-webkit-scrollbar-thumb:hover {
+            background: #764ba2;
+        }
+        
+        .feature-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            color: white;
+            font-size: 1.8rem;
+        }
+        
+        .feature-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--dark-text);
+        }
+        
+        .feature-description {
+            color: var(--light-text);
+            line-height: 1.6;
+        }
+        
+        /* CTA Section */
+        .cta-section {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 6rem 0;
+            text-align: center;
+        }
+        
+        .cta-title {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: var(--dark-text);
+        }
+        
+        .cta-description {
+            font-size: 1.1rem;
+            color: var(--light-text);
+            margin-bottom: 2.5rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        /* Footer */
+        .footer {
+            background: var(--dark-text);
+            color: white;
+            padding: 3rem 0;
+            text-align: center;
+        }
+        
+        .footer-content {
+            margin-bottom: 2rem;
+        }
+        
+        .footer-logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        
+        .footer-links {
+            list-style: none;
+            padding: 0;
+            margin: 1rem 0;
+        }
+        
+        .footer-links li {
+            display: inline-block;
+            margin: 0 1rem;
+        }
+        
+        .footer-links a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        
+        .footer-links a:hover {
+            color: white;
+        }
+        
+        .footer-copyright {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.9rem;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 992px) {
+            .hero-title {
+                font-size: 2.8rem;
+            }
+            
+            .hero-image {
+                margin-top: 3rem;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2.2rem;
+            }
+            
+            .hero-subtitle {
+                font-size: 1.1rem;
+            }
+            
+            .btn-primary,
+            .btn-secondary {
+                padding: 0.8rem 2rem;
+                font-size: 1rem;
+            }
+            
+            .section-title {
+                font-size: 2rem;
+            }
+            
+            .feature-card {
+                margin-bottom: 2rem;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .hero-title {
+                font-size: 1.8rem;
+            }
+            
+            .hero-section {
+                padding: 2rem 0;
+            }
+            
+            .features-section {
+                padding: 4rem 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6 hero-content">
+                    <h1 class="hero-title">智能简历管理系统</h1>
+                    <p class="hero-subtitle">
+                        专业的简历解析、管理与展示平台，支持PDF和Word文档，智能提取个人信息，生成精美的在线简历。
+                    </p>
+                    <div class="d-flex flex-wrap gap-3">
+                        <a href="{{ url_for('login') }}" class="btn btn-primary">
+                            <i class="fa fa-sign-in me-2"></i>登录系统
+                        </a>
+                        <a href="{{ url_for('register') }}" class="btn btn-secondary">
+                            <i class="fa fa-user-plus me-2"></i>立即注册
+                        </a>
+                    </div>
+                </div>
+                <div class="col-lg-6 hero-image">
+                    <img src="https://images.unsplash.com/photo-1542744173-8e7e53415bb0?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80" alt="智能简历管理系统" class="img-fluid">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features-section">
+        <div class="container">
+            <h2 class="section-title">核心功能</h2>
+            <p class="section-subtitle">
+                我们提供全方位的简历管理解决方案，让您的简历脱颖而出
+            </p>
+            
+            <div class="row g-4">
+                <div class="col-lg-4 col-md-6">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fa fa-file-text-o"></i>
+                        </div>
+                        <h3 class="feature-title">智能解析</h3>
+                        <p class="feature-description">
+                            支持PDF和Word文档，自动提取姓名、联系方式、教育背景、工作经历等关键信息。
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4 col-md-6">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fa fa-user-circle-o"></i>
+                        </div>
+                        <h3 class="feature-title">个人照片提取</h3>
+                        <p class="feature-description">
+                            智能识别并提取简历中的个人照片，自动设置为头像，提升简历的专业度。
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4 col-md-6">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fa fa-download"></i>
+                        </div>
+                        <h3 class="feature-title">PDF导出</h3>
+                        <p class="feature-description">
+                            一键导出精美PDF简历，格式专业、排版美观，适合各种求职场景。
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4 col-md-6">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fa fa-line-chart"></i>
+                        </div>
+                        <h3 class="feature-title">数据分析</h3>
+                        <p class="feature-description">
+                            提供简历数据统计和分析，帮助您了解简历的优势和改进空间。
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4 col-md-6">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fa fa-mobile"></i>
+                        </div>
+                        <h3 class="feature-title">响应式设计</h3>
+                        <p class="feature-description">
+                            适配各种设备屏幕，在手机、平板和电脑上都能完美展示您的简历。
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4 col-md-6">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fa fa-lock"></i>
+                        </div>
+                        <h3 class="feature-title">安全保障</h3>
+                        <p class="feature-description">
+                            多重安全措施保护您的个人信息，确保数据安全和隐私保护。
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="container">
+            <h2 class="cta-title">开始您的职业之旅</h2>
+            <p class="cta-description">
+                加入我们，创建专业的在线简历，提升您的求职竞争力
+            </p>
+            <div class="d-flex flex-wrap justify-content-center gap-3">
+                <a href="{{ url_for('login') }}" class="btn btn-primary">
+                    <i class="fa fa-sign-in me-2"></i>立即登录
+                </a>
+                <a href="{{ url_for('register') }}" class="btn btn-secondary">
+                    <i class="fa fa-user-plus me-2"></i>免费注册
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">智能简历管理系统</div>
+                <ul class="footer-links">
+                    <li><a href="#">首页</a></li>
+                    <li><a href="{{ url_for('login') }}">登录</a></li>
+                    <li><a href="{{ url_for('register') }}">注册</a></li>
+                    <li><a href="#">关于我们</a></li>
+                </ul>
+            </div>
+            <div class="footer-copyright">
+                &copy; {{ current_year }} 智能简历管理系统. 保留所有权利.
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 设置当前年份
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentYear = new Date().getFullYear();
+            const copyrightElement = document.querySelector('.footer-copyright');
+            if (copyrightElement) {
+                copyrightElement.innerHTML = `&copy; ${currentYear} 智能简历管理系统. 保留所有权利.`;
+            }
+        });
+    </script>
+</body>
+</html>

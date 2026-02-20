@@ -6,19 +6,11 @@ import re
 import PyPDF2
 import uuid
 from docx import Document
-import pdfkit  # 先导入pdfkit模块，然后再导入Flask类
+import pdfkit
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
 
 print('开始初始化应用...')
-
-# 延迟导入Flask和其他模块
-try:
-    from flask import Flask
-    print('✓ Flask 导入成功')
-except Exception as e:
-    print('✗ Flask 导入失败:', str(e))
-    import traceback
-    traceback.print_exc()
-    exit(1)
 
 # 初始化Flask应用
 app = Flask(__name__)
@@ -47,16 +39,6 @@ else:  # Linux/Mac系统
     app.config['WKHTMLTOPDF_PATH'] = 'wkhtmltopdf'
 
 print('✓ Flask应用初始化成功')
-
-# 延迟导入SQLAlchemy
-try:
-    from flask_sqlalchemy import SQLAlchemy
-    print('✓ SQLAlchemy 导入成功')
-except Exception as e:
-    print('✗ SQLAlchemy 导入失败:', str(e))
-    import traceback
-    traceback.print_exc()
-    exit(1)
 
 # 初始化扩展
 db = SQLAlchemy(app)
@@ -278,7 +260,7 @@ def dashboard():
     
     return render_template('dashboard.html', user=user, resumes=resumes)
 
-# 简历展示页（所有人可访问，高颜值布局）
+# 首页（登录前展示界面）
 @app.route('/')
 def index():
     from flask import session, render_template
@@ -298,19 +280,8 @@ def index():
             db.session.commit()
         return render_template('index.html', resume=resume, is_owner=True)
     
-    # 未登录用户可以查看公开的简历
-    resume = Resume.query.filter_by(is_public=True).first()
-    if not resume:
-        resume = Resume(
-            user_id=1,  # 默认使用第一个用户
-            name='你的名字', job='求职意向',
-            intro='', phone='', email='',
-            education='暂无教育经历', experience='暂无工作/项目经历',
-            skills='暂无技能信息', certificates=''
-        )
-        db.session.add(resume)
-        db.session.commit()
-    return render_template('index.html', resume=resume, is_owner=False)
+    # 未登录用户显示登录前展示界面
+    return render_template('home.html')
 
 # 个人简历展示页（根据用户唯一标识符）
 @app.route('/profile/<string:unique_id>')
@@ -362,6 +333,60 @@ def edit():
 
     # 保存修改（自动记录版本）
     if request.method == 'POST':
+        # 检查是否为文件上传操作
+        action = request.form.get('action', 'save')
+        if action == 'upload':
+            # 处理文件上传和解析
+            if 'resume_file' not in request.files:
+                flash('请选择PDF/Word文件！', 'error')
+                return redirect(url_for('edit'))
+
+            file = request.files['resume_file']
+            if file.filename == '':
+                flash('文件名称不能为空！', 'error')
+                return redirect(url_for('edit'))
+
+            # 检查文件类型
+            if not (file.filename.endswith('.pdf') or file.filename.endswith('.docx')):
+                flash('仅支持 PDF 和 Word (.docx) 格式！', 'error')
+                return redirect(url_for('edit'))
+
+            # 保存文件并解析
+            try:
+                # 生成唯一文件名
+                ext = os.path.splitext(file.filename)[1]
+                unique_filename = f"{uuid.uuid4().hex}{ext}"
+
+                # 确保目录存在
+                documents_dir = os.path.join(app.config['UPLOAD_FOLDER'], 'documents')
+                os.makedirs(documents_dir, exist_ok=True)
+
+                # 保存文件
+                file_path = os.path.join(documents_dir, unique_filename)
+                file.save(file_path)
+
+                # 解析简历
+                resume_data = parse_resume(file_path)
+
+                if resume_data and len(resume_data) > 0:
+                    # 直接更新简历字段
+                    for key, val in resume_data.items():
+                        if val:
+                            setattr(resume, key, val)
+                    db.session.commit()
+                    parsed_fields = ', '.join([k for k in resume_data.keys()])
+                    flash(f'简历解析成功！已提取：{parsed_fields}，请在各选项卡中查看。', 'success')
+                else:
+                    flash('解析完成，但未能从文件中提取到有效信息，请检查文件格式或手动填写。', 'warning')
+            except Exception as e:
+                print(f"文件上传解析失败: {str(e)}")
+                import traceback
+                traceback.print_exc()
+                flash(f'解析失败：{str(e)}', 'error')
+
+            return redirect(url_for('edit'))
+
+        # 处理普通表单保存
         # 已有简历则记录版本
         if resume.id:
             history = ResumeHistory(
@@ -393,7 +418,6 @@ def edit():
                 file = request.files['avatar']
                 if allowed_file(file.filename, ALLOWED_IMAGE_EXTENSIONS):
                     # 生成唯一文件名
-                    import uuid
                     filename = str(uuid.uuid4()) + '.' + file.filename.rsplit('.', 1)[1].lower()
                     # 确保photos目录存在
                     photos_dir = os.path.join(app.config['UPLOAD_FOLDER'], 'photos')
@@ -596,102 +620,142 @@ def export_current_pdf():
         'avatar': resume.avatar,
         'update_time': resume.update_time
     }
-    # 渲染模板为HTML（使用展示页模板，保留排版）
-    html = render_template('index.html', resume=resume_data)
+    # 创建一个简单的静态HTML模板，只包含文本内容
+    # 使用普通字符串，避免f-string中的反斜杠问题
+    simple_html = '''
+    <!DOCTYPE html>
+    <html lang="zh-CN">
+    <head>
+        <meta charset="UTF-8">
+        <title>{name} - 简历</title>
+        <style>
+            * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+            body {{ font-family: "Microsoft YaHei", "SimSun", Arial, sans-serif; color: #333; line-height: 1.6; }}
+            .resume {{ max-width: 210mm; margin: 0 auto; padding: 20mm; background: white; }}
+            .header {{ text-align: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 2px solid #667eea; }}
+            .name {{ font-size: 24px; font-weight: bold; margin-bottom: 10px; color: #667eea; }}
+            .job {{ font-size: 16px; margin-bottom: 15px; color: #666; }}
+            .contact {{ font-size: 14px; color: #666; margin-bottom: 10px; }}
+            .section {{ margin-bottom: 30px; }}
+            .section-title {{ font-size: 18px; font-weight: bold; margin-bottom: 15px; color: #667eea; border-bottom: 1px solid #667eea; padding-bottom: 5px; }}
+            .content {{ font-size: 14px; line-height: 1.8; }}
+            .skill {{ display: inline-block; background: #f0f0f0; padding: 5px 10px; margin: 5px; border-radius: 3px; font-size: 13px; }}
+            .update-time {{ text-align: right; font-size: 12px; color: #999; margin-top: 30px; padding-top: 10px; border-top: 1px solid #eee; }}
+        </style>
+    </head>
+    <body>
+        <div class="resume">
+            <div class="header">
+                {avatar_section}
+                <div class="name">{name}</div>
+                <div class="job">{job}</div>
+                <div class="contact">
+                    {contact_info}
+                </div>
+            </div>
+            
+            {intro_section}
+            
+            <div class="section">
+                <div class="section-title">教育经历</div>
+                <div class="content">{education}</div>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">工作/项目经历</div>
+                <div class="content">{experience}</div>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">技能特长</div>
+                <div class="content">
+                    {skills_section}
+                </div>
+            </div>
+            
+            {certificates_section}
+            
+            <div class="update-time">
+                更新时间: {update_time}
+            </div>
+        </div>
+    </body>
+    </html>
+    '''
+    
+    # 构建各个部分的内容
+    contact_info = ''
+    if resume.phone:
+        contact_info += f'电话: {resume.phone}<br>'
+    if resume.email:
+        contact_info += f'邮箱: {resume.email}<br>'
+    
+    # 构建头像部分
+    avatar_section = ''
+    if resume.avatar:
+        # 确保头像路径是本地路径
+        import os
+        avatar_path = resume.avatar
+        if avatar_path.startswith('/'):
+            # 移除开头的斜杠，使用相对路径
+            avatar_path = avatar_path[1:]
+        # 检查文件是否存在
+        if os.path.exists(avatar_path):
+            # 使用绝对路径确保wkhtmltopdf能找到图片
+            avatar_abs_path = os.path.abspath(avatar_path)
+            # 将路径转换为file://格式，确保wkhtmltopdf能正确加载
+            avatar_file_url = f'file:///{avatar_abs_path.replace(os.sep, "/")}'
+            avatar_section = f'''
+            <div class="avatar" style="text-align: center; margin-bottom: 20px;">
+                <img src="{avatar_file_url}" style="width: 120px; height: 120px; border-radius: 50%; border: 2px solid #667eea;" alt="头像">
+            </div>
+            '''
+    
+    intro_section = ''
+    if resume.intro:
+        intro_section = f'''
+            <div class="section">
+                <div class="section-title">个人简介</div>
+                <div class="content">{resume.intro}</div>
+            </div>
+        '''
+    
+    skills_section = '暂无技能信息'
+    if resume.skills:
+        skills = [skill.strip() for skill in resume.skills.split(',')]
+        skills_html = [f'<span class="skill">{skill}</span>' for skill in skills]
+        skills_section = ''.join(skills_html)
+    
+    certificates_section = ''
+    if resume.certificates:
+        certificates_section = f'''
+            <div class="section">
+                <div class="section-title">证书/荣誉</div>
+                <div class="content">{resume.certificates}</div>
+            </div>
+        '''
+    
+    # 替换模板变量
+    simple_html = simple_html.format(
+        name=resume.name,
+        job=resume.job,
+        avatar_section=avatar_section,
+        contact_info=contact_info,
+        intro_section=intro_section,
+        education=resume.education,
+        experience=resume.experience,
+        skills_section=skills_section,
+        certificates_section=certificates_section,
+        update_time=resume.update_time.strftime('%Y-%m-%d %H:%M:%S')
+    )
+    
+    # 使用简化的HTML生成PDF
+    html = simple_html
 
-    # 获取应用的基础URL，用于图片加载
-    base_url = request.url_root
-
-    # 将相对路径转换为绝对路径
-    html = html.replace('src="/static/', f'src="{base_url}static/')
-    html = html.replace('href="/static/', f'href="{base_url}static/')
-
-    # 替换CSS变量为实际颜色值，提高PDF兼容性
-    html = html.replace('var(--primary-color)', '#667eea')
-    html = html.replace('var(--secondary-color)', '#764ba2')
-
-    # 隐藏导出按钮
-    html = html.replace('<a href="' + url_for('export_current_pdf') + '" class="btn export-btn">', '<a href="#" class="btn export-btn" style="display:none;">')
-
-    # 添加PDF专用样式，优化排版和布局
-    pdf_style = """
-    <style>
-        @page { margin: 0; size: A4; }
-        html, body { 
-            -webkit-print-color-adjust: exact; 
-            print-color-adjust: exact; 
-            background: #f5f5f5 !important; 
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            min-height: 297mm;
-        }
-        body { padding: 15px 15px; }
-        .resume-container { 
-            background: white !important; 
-            margin: 0 auto !important; 
-            max-width: 210mm !important;
-            min-height: 267mm !important;
-            box-shadow: none !important;
-            padding: 0 !important;
-            border-radius: 12px !important;
-            overflow: hidden !important;
-            display: flex !important;
-            flex-direction: column !important;
-        }
-        .resume-header { 
-            background: #667eea !important; 
-            padding: 2.5rem 2rem !important; 
-            color: white !important;
-        }
-        .avatar { 
-            width: 120px !important; 
-            height: 120px !important;
-            border: 4px solid rgba(255,255,255,0.9) !important;
-            border-radius: 50% !important;
-        }
-        .resume-name { font-size: 2rem !important; margin-bottom: 0.3rem !important; }
-        .resume-job { font-size: 1.2rem !important; margin-bottom: 1rem !important; }
-        .contact-info { 
-            display: flex !important; 
-            justify-content: center !important; 
-            gap: 1.5rem !important; 
-            flex-wrap: wrap !important; 
-            margin-top: 1rem !important;
-        }
-        .contact-item { color: white !important; }
-        .resume-body { padding: 2rem !important; }
-        .section-title { 
-            font-size: 1.3rem !important; 
-            margin-bottom: 1rem !important; 
-            padding-bottom: 0.5rem !important; 
-        }
-        .section-icon { 
-            width: 35px !important; 
-            height: 35px !important; 
-            background: #667eea !important; 
-            border-radius: 8px !important;
-        }
-        .skill-tag { 
-            background: #f0f2ff !important; 
-            padding: 0.4rem 1rem !important; 
-            margin: 0.3rem 0.2rem !important; 
-            font-size: 0.9rem !important;
-            border-radius: 20px !important;
-        }
-        .intro-box { 
-            background: #f8f9ff !important; 
-            padding: 1rem !important; 
-            margin-bottom: 1.5rem !important; 
-            border-radius: 8px !important;
-        }
-        .education-item, .experience-item { margin-bottom: 1.2rem !important; }
-        .update-time { margin-top: 0.3rem !important; padding-top: 0.3rem !important; }
-        .resume-body { padding-bottom: 1rem !important; }
-        .export-btn { display: none !important; }
-    </style>
-    """
-    html = html.replace('</head>', pdf_style + '</head>')
+    # 确保HTML格式正确
+    html = html.strip()
+    if not html.startswith('<!DOCTYPE'):
+        html = '<!DOCTYPE html>' + html
 
     # 转换为PDF（优化中文显示和排版）
     pdf_options = {
@@ -705,15 +769,18 @@ def export_current_pdf():
         'disable-smart-shrinking': None,
         'enable-local-file-access': None,
         'no-stop-slow-scripts': None,
-        'debug-javascript': None,
         'load-error-handling': 'ignore',
         'load-media-error-handling': 'ignore',
-        'images': None,
-        'enable-external-links': None,
         'print-media-type': None,
-        'background': None,  # 启用背景渲染
-        'dpi': 96,
-        'image-dpi': 96
+        'quiet': None,  # 安静模式
+        'disable-javascript': None,  # 禁用JavaScript以避免加载问题
+        'disable-plugins': None,  # 禁用插件
+        'disable-forms': None,  # 禁用表单
+        'disable-internal-links': None,  # 禁用内部链接
+        'disable-external-links': None,  # 禁用外部链接
+        'disable-toc-back-links': None,  # 禁用目录回链
+        'no-background': None  # 禁用背景（减少渲染问题）
+        # 移除no-images选项，启用图片加载
     }
     try:
         print(f'[DEBUG] 开始生成PDF...')

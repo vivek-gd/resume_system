@@ -1,18 +1,11 @@
 # 简单测试Flask导入
 print('开始测试Flask导入...')
 
+# 尝试导入Flask
 try:
-    import sys
-    print('Python版本:', sys.version)
-    print('Python路径:', sys.path)
-    
     print('尝试导入Flask...')
     from flask import Flask
     print('✓ Flask 导入成功')
-    
-    print('尝试创建Flask应用...')
-    app = Flask(__name__)
-    print('✓ Flask应用创建成功')
     
     print('测试完成')
 except Exception as e:

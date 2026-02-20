@@ -58,10 +58,51 @@
                 <i class="fa fa-user-plus me-2"></i>注册
             </a>
         {% endif %}
-        <a href="{{ url_for('export_current_pdf') }}" class="btn export-btn">
-            <i class="fa fa-download me-2"></i>导出PDF
-        </a>
+        <button id="exportBtn" class="btn export-btn" onclick="exportPDF()">
+            <i class="fa fa-download me-2"></i>
+            <span id="exportText">导出PDF</span>
+            <span id="exportLoading" style="display: none;">
+                <i class="fa fa-spinner fa-spin me-2"></i>生成中...
+            </span>
+        </button>
     </div>
+    
+    <script>
+        function exportPDF() {
+            // 显示加载状态
+            document.getElementById('exportText').style.display = 'none';
+            document.getElementById('exportLoading').style.display = 'inline';
+            document.getElementById('exportBtn').disabled = true;
+            
+            // 创建隐藏的iframe来处理PDF下载
+            var iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
+            iframe.src = '{{ url_for('export_current_pdf') }}';
+            
+            // 监听iframe加载完成
+            iframe.onload = function() {
+                // 恢复按钮状态（可能会在PDF生成完成前触发，所以设置一个延迟）
+                setTimeout(function() {
+                    document.getElementById('exportText').style.display = 'inline';
+                    document.getElementById('exportLoading').style.display = 'none';
+                    document.getElementById('exportBtn').disabled = false;
+                    // 移除iframe
+                    document.body.removeChild(iframe);
+                }, 2000);
+            };
+            
+            // 监听iframe错误
+            iframe.onerror = function() {
+                document.getElementById('exportText').style.display = 'inline';
+                document.getElementById('exportLoading').style.display = 'none';
+                document.getElementById('exportBtn').disabled = false;
+                document.body.removeChild(iframe);
+                alert('PDF导出失败，请稍后重试');
+            };
+            
+            document.body.appendChild(iframe);
+        }
+    </script>
 
     <div class="resume-container">
         <div class="resume-header">

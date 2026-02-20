@@ -142,33 +142,33 @@
                 {% for resume in resumes %}
                 <div class="col-md-4 mb-4">
                     <div class="dashboard-card">
-                        <div class="resume-thumbnail">
-                            <i class="fa fa-user-circle-o"></i>
-                        </div>
-                        <h3 class="resume-title">{{ resume.name }}</h3>
-                        <div class="resume-meta">
-                            <p><strong>求职意向:</strong> {{ resume.job }}</p>
-                            <p><strong>最后更新:</strong> {{ resume.update_time.strftime("%Y-%m-%d %H:%M") }}</p>
-                            <p><strong>状态:</strong> 
-                                {% if resume.is_public %}
-                                    <span class="badge bg-success">公开</span>
-                                {% else %}
-                                    <span class="badge bg-secondary">私密</span>
-                                {% endif %}
-                            </p>
-                        </div>
-                        <div class="d-grid gap-2">
-                            <a href="{{ url_for('index') }}" class="btn btn-primary">
-                                <i class="fa fa-eye me-1"></i>查看简历
-                            </a>
-                            <a href="{{ url_for('edit') }}" class="btn btn-success">
-                                <i class="fa fa-pencil me-1"></i>编辑简历
-                            </a>
-                            <a href="{{ url_for('export_current_pdf') }}" class="btn btn-warning">
-                                <i class="fa fa-download me-1"></i>导出PDF
-                            </a>
-                        </div>
+                    <div class="resume-thumbnail">
+                        <i class="fa fa-user-circle-o"></i>
                     </div>
+                    <h3 class="resume-title">{{ resume.name }}</h3>
+                    <div class="resume-meta">
+                        <p><strong>求职意向:</strong> {{ resume.job }}</p>
+                        <p><strong>最后更新:</strong> {{ resume.update_time.strftime("%Y-%m-%d %H:%M") }}</p>
+                        <p><strong>状态:</strong> 
+                            {% if resume.is_public %}
+                                <span class="badge bg-success">公开</span>
+                            {% else %}
+                                <span class="badge bg-secondary">私密</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('index') }}" class="btn btn-primary">
+                            <i class="fa fa-eye me-1"></i>查看简历
+                        </a>
+                        <a href="{{ url_for('edit') }}" class="btn btn-success">
+                            <i class="fa fa-pencil me-1"></i>编辑简历
+                        </a>
+                        <a href="{{ url_for('export_current_pdf') }}" class="btn btn-warning">
+                            <i class="fa fa-download me-1"></i>导出PDF
+                        </a>
+                    </div>
+                </div>
                 </div>
                 {% endfor %}
             {% endif %}
