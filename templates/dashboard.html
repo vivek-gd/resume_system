@@ -10,11 +10,15 @@
         body { 
             background-color: #f8f9fa; 
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
         }
+        /* 全局容器：全屏平铺基础 */
         .dashboard-container { 
-            max-width: 1200px; 
-            margin: 40px auto; 
-            padding: 0 15px;
+            width: 100%; 
+            min-height: 100vh;
+            padding: 40px 20px;
+            box-sizing: border-box;
         }
         .dashboard-header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -23,18 +27,60 @@
             border-radius: 12px;
             margin-bottom: 2rem;
             box-shadow: 0 4px 20px rgba(102,126,234,0.3);
+            max-width: 100%;
         }
+        /* 平铺卡片容器：关键布局 */
+        .cards-wrapper {
+            display: grid;
+            /* 自适应列数：最小280px一列，自动填充，列间距20px */
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px; /* 卡片之间的均匀间距 */
+            width: 100%;
+        }
+        /* 核心：平铺卡片样式（等宽等高） */
         .dashboard-card {
             background: white;
             border-radius: 12px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.08);
             padding: 1.5rem;
-            margin-bottom: 1.5rem;
             transition: transform 0.3s;
+            /* 等高：固定高度，确保所有卡片一致 */
+            height: 550px; 
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box; /* 内边距不影响尺寸 */
         }
         .dashboard-card:hover {
             transform: translateY(-5px);
         }
+        /* 固定高度的缩略图区域（不滚动） */
+        .resume-thumbnail {
+            height: 140px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            flex-shrink: 0; /* 不被压缩 */
+        }
+        /* 内容滚动区域：占满剩余空间 */
+        .card-content {
+            flex: 1; 
+            overflow-y: auto; /* 内容超出时滚动 */
+            padding-right: 5px;
+        }
+        /* 美化滚动条 */
+        .card-content::-webkit-scrollbar {
+            width: 6px;
+        }
+        .card-content::-webkit-scrollbar-thumb {
+            background-color: #ddd;
+            border-radius: 3px;
+        }
+        /* 按钮样式保持不变 */
         .btn-primary {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border: none;
@@ -63,17 +109,6 @@
         .btn-warning:hover {
             background: linear-gradient(135deg, #e083ea 0%, #e44d61 100%);
         }
-        .resume-thumbnail {
-            height: 150px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 2rem;
-            margin-bottom: 1rem;
-        }
         .resume-title {
             font-size: 1.2rem;
             font-weight: 600;
@@ -84,17 +119,29 @@
             font-size: 0.9rem;
             margin-bottom: 1rem;
         }
+        /* 响应式优化：小屏幕调整间距和高度 */
+        @media (max-width: 768px) {
+            .dashboard-card {
+                height: 500px;
+            }
+            .cards-wrapper {
+                gap: 15px;
+            }
+            .dashboard-header {
+                padding: 1.5rem;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="dashboard-container">
         <div class="dashboard-header">
-            <div class="d-flex justify-content-between align-items-center">
+            <div class="d-flex justify-content-between align-items-center flex-wrap">
                 <div>
                     <h1 class="mb-2">欢迎, {{ user.username }}!</h1>
                     <p class="mb-0">管理您的个人简历和版本历史</p>
                 </div>
-                <div class="d-flex gap-2">
+                <div class="d-flex gap-2 mt-2 mt-md-0">
                     <a href="{{ url_for('index') }}" class="btn btn-light">
                         <i class="fa fa-eye me-1"></i>查看简历
                     </a>
@@ -105,12 +152,14 @@
             </div>
         </div>
 
-        <div class="row">
-            <div class="col-md-4 mb-4">
-                <div class="dashboard-card">
-                    <div class="resume-thumbnail">
-                        <i class="fa fa-file-text-o"></i>
-                    </div>
+        <!-- 平铺卡片容器 -->
+        <div class="cards-wrapper">
+            <!-- 第一个卡片：我的简历 -->
+            <div class="dashboard-card">
+                <div class="resume-thumbnail">
+                    <i class="fa fa-file-text-o"></i>
+                </div>
+                <div class="card-content">
                     <h3 class="resume-title">我的简历</h3>
                     <div class="resume-meta">
                         {% if resumes %}
@@ -138,37 +187,38 @@
                 </div>
             </div>
 
+            <!-- 简历列表卡片：循环渲染 -->
             {% if resumes %}
                 {% for resume in resumes %}
-                <div class="col-md-4 mb-4">
-                    <div class="dashboard-card">
+                <div class="dashboard-card">
                     <div class="resume-thumbnail">
                         <i class="fa fa-user-circle-o"></i>
                     </div>
-                    <h3 class="resume-title">{{ resume.name }}</h3>
-                    <div class="resume-meta">
-                        <p><strong>求职意向:</strong> {{ resume.job }}</p>
-                        <p><strong>最后更新:</strong> {{ resume.update_time.strftime("%Y-%m-%d %H:%M") }}</p>
-                        <p><strong>状态:</strong> 
-                            {% if resume.is_public %}
-                                <span class="badge bg-success">公开</span>
-                            {% else %}
-                                <span class="badge bg-secondary">私密</span>
-                            {% endif %}
-                        </p>
+                    <div class="card-content">
+                        <h3 class="resume-title">{{ resume.name }}</h3>
+                        <div class="resume-meta">
+                            <p><strong>求职意向:</strong> {{ resume.job }}</p>
+                            <p><strong>最后更新:</strong> {{ resume.update_time.strftime("%Y-%m-%d %H:%M") }}</p>
+                            <p><strong>状态:</strong> 
+                                {% if resume.is_public %}
+                                    <span class="badge bg-success">公开</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">私密</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="d-grid gap-2">
+                            <a href="{{ url_for('index') }}" class="btn btn-primary">
+                                <i class="fa fa-eye me-1"></i>查看简历
+                            </a>
+                            <a href="{{ url_for('edit') }}" class="btn btn-success">
+                                <i class="fa fa-pencil me-1"></i>编辑简历
+                            </a>
+                            <a href="{{ url_for('export_current_pdf') }}" class="btn btn-warning">
+                                <i class="fa fa-download me-1"></i>导出PDF
+                            </a>
+                        </div>
                     </div>
-                    <div class="d-grid gap-2">
-                        <a href="{{ url_for('index') }}" class="btn btn-primary">
-                            <i class="fa fa-eye me-1"></i>查看简历
-                        </a>
-                        <a href="{{ url_for('edit') }}" class="btn btn-success">
-                            <i class="fa fa-pencil me-1"></i>编辑简历
-                        </a>
-                        <a href="{{ url_for('export_current_pdf') }}" class="btn btn-warning">
-                            <i class="fa fa-download me-1"></i>导出PDF
-                        </a>
-                    </div>
-                </div>
                 </div>
                 {% endfor %}
             {% endif %}
