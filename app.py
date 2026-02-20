@@ -441,7 +441,11 @@ def edit():
                 setattr(resume, key, val)
         db.session.commit()
         flash('简历解析成功！内容已填充，请在各选项卡中查看和编辑', 'success')
-    return render_template('edit.html', resume=resume)
+    
+    # 生成AI优化建议
+    suggestions = generate_ai_suggestions(resume)
+    
+    return render_template('edit.html', resume=resume, suggestions=suggestions)
 
 # 简历上传解析接口
 @app.route('/upload_resume', methods=['POST'])
@@ -965,6 +969,80 @@ def export_version(history_id):
     except Exception as e:
         flash(f'PDF导出失败：{str(e)}', 'error')
         return redirect(url_for('history'))
+
+# 生成AI优化建议的函数
+def generate_ai_suggestions(resume):
+    """根据简历内容生成优化建议"""
+    suggestions = {
+        'name': [],
+        'job': [],
+        'intro': [],
+        'education': [],
+        'experience': [],
+        'skills': [],
+        'certificates': []
+    }
+    
+    # 姓名建议
+    if not resume.name or resume.name == '你的名字':
+        suggestions['name'].append('请填写真实姓名，这是简历的基本信息')
+    
+    # 求职意向建议
+    if not resume.job or resume.job == '求职意向':
+        suggestions['job'].append('明确你的求职意向，包括职位名称和行业方向')
+        suggestions['job'].append('求职意向应与你的技能和经验相匹配')
+    else:
+        suggestions['job'].append('求职意向明确，建议根据目标岗位进一步细化')
+    
+    # 个人简介建议
+    if not resume.intro:
+        suggestions['intro'].append('添加个人简介，简要介绍你的专业背景、核心技能和职业目标')
+        suggestions['intro'].append('个人简介应控制在100-150字，突出你的优势和价值')
+    else:
+        if len(resume.intro) < 50:
+            suggestions['intro'].append('个人简介略显简短，建议适当扩展，突出更多优势')
+        elif len(resume.intro) > 200:
+            suggestions['intro'].append('个人简介过长，建议精简内容，保持重点突出')
+        else:
+            suggestions['intro'].append('个人简介长度适中，建议确保内容与求职意向相关')
+    
+    # 教育经历建议
+    if not resume.education or '暂无' in resume.education:
+        suggestions['education'].append('请填写详细的教育经历，包括学校、专业、学历和毕业时间')
+        suggestions['education'].append('如有相关课程或学术成就，也可以一并列出')
+    else:
+        suggestions['education'].append('教育经历已填写，建议突出与求职意向相关的学术背景')
+    
+    # 工作/项目经历建议
+    if not resume.experience or '暂无' in resume.experience:
+        suggestions['experience'].append('请填写详细的工作或项目经历，包括公司/项目名称、职位、职责和成果')
+        suggestions['experience'].append('使用STAR法则（情境、任务、行动、结果）描述你的经历')
+        suggestions['experience'].append('量化你的成就，使用具体数字和数据')
+    else:
+        if '暂无' not in resume.experience:
+            suggestions['experience'].append('工作/项目经历已填写，建议使用更多量化成果增强说服力')
+            suggestions['experience'].append('确保经历描述与求职意向相关，突出相关技能和成就')
+    
+    # 技能建议
+    if not resume.skills or '暂无' in resume.skills:
+        suggestions['skills'].append('请列出你的专业技能，包括技术技能、软技能等')
+        suggestions['skills'].append('技能应与求职意向相关，按熟练度或重要性排序')
+        suggestions['skills'].append('对于技术技能，建议标明熟悉程度')
+    else:
+        skills_list = [skill.strip() for skill in resume.skills.split(',')]
+        if len(skills_list) < 5:
+            suggestions['skills'].append('技能列表略显简短，建议补充更多与求职意向相关的技能')
+        else:
+            suggestions['skills'].append('技能列表丰富，建议确保技能与求职意向高度相关')
+    
+    # 证书/荣誉建议
+    if not resume.certificates:
+        suggestions['certificates'].append('如有相关证书或荣誉，建议填写，这可以增强你的竞争力')
+        suggestions['certificates'].append('证书应与求职意向相关，包括证书名称、颁发机构和获得时间')
+    else:
+        suggestions['certificates'].append('证书/荣誉已填写，建议突出与求职意向最相关的证书')
+    
+    return suggestions
 
 # 退出登录
 @app.route('/logout')

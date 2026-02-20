@@ -628,14 +628,32 @@
                             <div class="col-md-8">
                                 <label class="form-label required">姓名</label>
                                 <input type="text" name="name" class="form-control form-control-lg" value="{{ resume.name or '' }}" placeholder="请输入您的姓名" required>
+                                {% if suggestions.name %}
+                                <div class="alert alert-info mt-2">
+                                    <i class="fa fa-lightbulb-o me-1"></i>
+                                    <small>{{ suggestions.name[0] }}</small>
+                                </div>
+                                {% endif %}
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label">求职意向</label>
                                 <input type="text" name="job" class="form-control form-control-lg" value="{{ resume.job or '' }}" placeholder="如：前端工程师">
+                                {% if suggestions.job %}
+                                <div class="alert alert-info mt-2">
+                                    <i class="fa fa-lightbulb-o me-1"></i>
+                                    <small>{{ suggestions.job[0] }}</small>
+                                </div>
+                                {% endif %}
                             </div>
                             <div class="col-12">
                                 <label class="form-label">个人简介</label>
                                 <textarea name="intro" class="form-control" rows="3" placeholder="简要介绍一下自己...">{{ resume.intro or '' }}</textarea>
+                                {% if suggestions.intro %}
+                                <div class="alert alert-info mt-2">
+                                    <i class="fa fa-lightbulb-o me-1"></i>
+                                    <small>{{ suggestions.intro[0] }}</small>
+                                </div>
+                                {% endif %}
                             </div>
                             <div class="col-12">
                                 <label class="form-label">头像上传</label>
@@ -665,6 +683,12 @@
                     <div class="tab-pane" id="education">
                         <label class="form-label">教育经历</label>
                         <textarea name="education" class="rich-textarea" id="educationEditor" placeholder="请输入教育经历，支持换行排版">{{ resume.education or '' }}</textarea>
+                        {% if suggestions.education %}
+                        <div class="alert alert-info mt-2">
+                            <i class="fa fa-lightbulb-o me-1"></i>
+                            <small>{{ suggestions.education[0] }}</small>
+                        </div>
+                        {% endif %}
                         <div class="form-text">
                             <i class="fa fa-lightbulb-o text-warning me-1"></i>
                             示例格式：2018.09 - 2022.06  北京大学  计算机科学与技术  本科
@@ -675,6 +699,12 @@
                     <div class="tab-pane" id="experience">
                         <label class="form-label">工作/项目经历</label>
                         <textarea name="experience" class="rich-textarea" id="experienceEditor" placeholder="请输入工作/项目经历，支持换行排版">{{ resume.experience or '' }}</textarea>
+                        {% if suggestions.experience %}
+                        <div class="alert alert-info mt-2">
+                            <i class="fa fa-lightbulb-o me-1"></i>
+                            <small>{{ suggestions.experience[0] }}</small>
+                        </div>
+                        {% endif %}
                         <div class="form-text">
                             <i class="fa fa-lightbulb-o text-warning me-1"></i>
                             示例格式：2022.07 - 至今  某科技公司  前端工程师
@@ -687,6 +717,12 @@
                         <div class="mb-4">
                             <label class="form-label">专业技能</label>
                             <textarea name="skills" class="form-control" rows="3" placeholder="用逗号分隔技能，如：Python,Flask,Vue.js,React">{{ resume.skills or '' }}</textarea>
+                            {% if suggestions.skills %}
+                            <div class="alert alert-info mt-2">
+                                <i class="fa fa-lightbulb-o me-1"></i>
+                                <small>{{ suggestions.skills[0] }}</small>
+                            </div>
+                            {% endif %}
                             <div class="form-text">
                                 <i class="fa fa-info-circle me-1"></i>
                                 技能之间使用逗号分隔，展示页会自动转为标签样式
@@ -695,6 +731,12 @@
                         <div>
                             <label class="form-label">证书/荣誉</label>
                             <textarea name="certificates" class="form-control" rows="3" placeholder="如：英语六级、计算机二级...">{{ resume.certificates or '' }}</textarea>
+                            {% if suggestions.certificates %}
+                            <div class="alert alert-info mt-2">
+                                <i class="fa fa-lightbulb-o me-1"></i>
+                                <small>{{ suggestions.certificates[0] }}</small>
+                            </div>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
